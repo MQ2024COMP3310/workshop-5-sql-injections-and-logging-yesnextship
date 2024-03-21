@@ -64,12 +64,12 @@ public class SQLiteConnectionManager {
         try (Connection conn = DriverManager.getConnection(databaseURL)) {
             if (conn != null) {
                 DatabaseMetaData meta = conn.getMetaData();
-                System.out.println("The driver name is " + meta.getDriverName());
-                System.out.println("A new database has been created.");
-
+                logger.info("The driver name is " + meta.getDriverName());
+                logger.info("A new database has been created.");
             }
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            logger.log(Level.WARNING, e.getMessage(), e);
+  
         }
     }
 
@@ -88,7 +88,7 @@ public class SQLiteConnectionManager {
                     return true;
                 }
             } catch (SQLException e) {
-                System.out.println(e.getMessage());
+                logger.log(Level.WARNING, e.getMessage(), e);
                 return false;
             }
         }
@@ -113,7 +113,7 @@ public class SQLiteConnectionManager {
                 return true;
 
             } catch (SQLException e) {
-                System.out.println(e.getMessage());
+                logger.log(Level.WARNING, e.getMessage(), e);
                 return false;
             }
         }
@@ -126,7 +126,11 @@ public class SQLiteConnectionManager {
      * @param word the word to store
      */
     public void addValidWord(int id, String word) {
-
+        String regex = "^[a-z]{4}$";
+        if (word!=regex){
+            logger.warning("Input is not a valid 4-letter string consisting only of lowercase letters a-z so not added");
+        }
+        else{
         String sql = "INSERT INTO validWords(id,word) VALUES(?, ?)";
 
         try (Connection conn = DriverManager.getConnection(databaseURL);
@@ -135,9 +139,9 @@ public class SQLiteConnectionManager {
                     pstmt.setString(2, word);
                     pstmt.executeUpdate();
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            logger.log(Level.WARNING, e.getMessage(), e);
         }
-
+    }
     }
 
     /**
@@ -147,6 +151,12 @@ public class SQLiteConnectionManager {
      * @return true if guess exists in the database, false otherwise
      */
     public boolean isValidWord(String guess) {
+        String regex = "^[a-z]{4}$";
+        if (guess!=regex){
+                logger.warning("Input is not a valid 4-letter string consisting only of lowercase letters a-z.");
+        
+            return false;
+        }
         String sql = "SELECT count(id) as total FROM validWords WHERE word like ?;";
 
         try (Connection conn = DriverManager.getConnection(databaseURL);
@@ -161,7 +171,7 @@ public class SQLiteConnectionManager {
             return false;
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            logger.log(Level.WARNING, e.getMessage(), e);
             return false;
         }
 
